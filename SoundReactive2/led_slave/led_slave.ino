@@ -10,7 +10,7 @@
 #define NUM_LEDS 72
 #define NUM_LEDS_ALL 144
 
-#define MIC_LOW 7  //30
+#define MIC_LOW 1  //30 7
 #define MIC_HIGH 650  //600
 
 #define SAMPLE_SIZE 60  //20
@@ -31,10 +31,10 @@ struct averageCounter *longTermSamples;
 struct averageCounter* sanityBuffer;
 
 float globalHue;
-float globalBrightness = 55;
+float globalBrightness = 55; //55
 int hueOffset = 120;
 float fadeScale = 1.3; //1.3
-float hueIncrement = 0.7; //0.7
+float hueIncrement = 2; //0.7
 
 struct led_command {
   uint8_t opmode;
@@ -237,35 +237,30 @@ void soundReactive(int analogRaw) {
   int curshow = fscale(MIC_LOW, MIC_HIGH, 0.0, (float)NUM_LEDS, (float)useVal, 0);
   //int curshow = map(useVal, MIC_LOW, MIC_HIGH, 0, NUM_LEDS)
      
-     
-     CHSV temp1;
-     CRGB temp2;
-
-     
-  for (int i = 0; i < (72); i++)
+  for (int i = 1; i < (NUM_LEDS); i++)
   {
      
    if (i < curshow)
     {
-     
+
       //leds[i] = CHSV(globalHue + hueOffset + (i * 2), 255, 255);
-      temp1 = CHSV(globalHue + hueOffset + (i * 2), 255, 255);
-      leds[i] = temp1;
-      leds[(144 - i)] = temp1;
+      leds[i] = CHSV(globalHue + hueOffset + (i * 2), 255, 255);
+      leds[((NUM_LEDS_ALL - 1) - i)] = leds[i];
+      
     }
     else
     {
-      
+
       //leds[i] = CRGB(leds[i].r / fadeScale, leds[i].g / fadeScale, leds[i].b / fadeScale);
-      temp2 = CRGB(leds[i].r / fadeScale, leds[i].g / fadeScale, leds[i].b / fadeScale);
-      leds[i] = temp2;
-      //leds[(144 - i)] = temp2;
+      leds[i] = CRGB(leds[i].r / fadeScale, leds[i].g / fadeScale, leds[i].b / fadeScale);
+      leds[((NUM_LEDS_ALL - 1) - i)] = leds[i];
+      
     }
     
   }
   
   
-  delay(10);
+  delay(5);
   FastLED.show(); 
 }
 
