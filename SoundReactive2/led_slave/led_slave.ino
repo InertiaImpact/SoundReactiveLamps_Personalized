@@ -6,8 +6,9 @@
 #include <WiFiUDP.h>
 #include "reactive_common.h"
 
-#define LED_PIN 2
-#define NUM_LEDS 144
+#define LED_PIN 4
+#define NUM_LEDS 72
+#define NUM_LEDS_ALL 144
 
 #define MIC_LOW 7  //30
 #define MIC_HIGH 650  //600
@@ -17,13 +18,13 @@
 #define BUFFER_DEVIATION 400
 #define BUFFER_SIZE 3
 
-#define LAMP_ID 2
+#define LAMP_ID 1;
 WiFiUDP UDP;
 
 const char *ssid = "sound_reactive"; // The SSID (name) of the Wi-Fi network you want to connect to
 const char *password = "123456789";  // The password of the Wi-Fi network
 
-CRGB leds[NUM_LEDS];
+CRGB leds[NUM_LEDS_ALL];
 
 struct averageCounter *samples;
 struct averageCounter *longTermSamples;
@@ -58,7 +59,9 @@ void setup()
   while(sanityBuffer->setSample(250) == true) {}
   while (longTermSamples->setSample(200) == true) {}
 
-  FastLED.addLeds<NEOPIXEL, LED_PIN>(leds, NUM_LEDS);
+  FastLED.addLeds<NEOPIXEL, LED_PIN>(leds, NUM_LEDS_ALL);
+  //FastLED.addLeds<NEOPIXEL, LED_PIN>(leds, NUM_LEDS);
+  
 
   Serial.begin(115200); // Start the Serial communication to send messages to the computer
   delay(10);
@@ -148,7 +151,7 @@ void off() {
     leds[i] = CHSV(0, 0, 0);
   }
   leds[0] = CRGB(0, 100, 0);
-  leds[1] = CRGB(100, 0, 0);
+  leds[50] = CRGB(100, 0, 0);
   
   FastLED.show();
 }
@@ -233,26 +236,42 @@ void soundReactive(int analogRaw) {
 
   int curshow = fscale(MIC_LOW, MIC_HIGH, 0.0, (float)NUM_LEDS, (float)useVal, 0);
   //int curshow = map(useVal, MIC_LOW, MIC_HIGH, 0, NUM_LEDS)
+     
+     
+     CHSV temp1;
+     CRGB temp2;
 
-  for (int i = 0; i < NUM_LEDS; i++)
+     
+  for (int i = 0; i < (72); i++)
   {
-    if (i < curshow)
+     
+   if (i < curshow)
     {
-      leds[i] = CHSV(globalHue + hueOffset + (i * 2), 255, 255);
+     
+      //leds[i] = CHSV(globalHue + hueOffset + (i * 2), 255, 255);
+      temp1 = CHSV(globalHue + hueOffset + (i * 2), 255, 255);
+      leds[i] = temp1;
+      leds[(144 - i)] = temp1;
     }
     else
     {
-      leds[i] = CRGB(leds[i].r / fadeScale, leds[i].g / fadeScale, leds[i].b / fadeScale);
+      
+      //leds[i] = CRGB(leds[i].r / fadeScale, leds[i].g / fadeScale, leds[i].b / fadeScale);
+      temp2 = CRGB(leds[i].r / fadeScale, leds[i].g / fadeScale, leds[i].b / fadeScale);
+      leds[i] = temp2;
+      //leds[(144 - i)] = temp2;
     }
     
   }
-  delay(5);
+  
+  
+  delay(10);
   FastLED.show(); 
 }
 
 void connectToWifi() {
    WiFi.mode(WIFI_STA);
-  for (int i = 0; i < NUM_LEDS; i++)
+  for (int i = 0; i < NUM_LEDS_ALL; i++)
   {
     leds[i] = CHSV(0, 0, 0);
   }

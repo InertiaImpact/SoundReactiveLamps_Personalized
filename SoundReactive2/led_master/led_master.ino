@@ -4,22 +4,13 @@
 #include "reactive_common.h"
 
 #define READ_PIN 0
-#define BUTTON_PIN 2
+#define BUTTON_PIN D1
 
 #define NUMBER_OF_CLIENTS 1
 
-//
-const int numReadings = 20;
-
-int readings[numReadings];      // the readings from the analog input
-int readIndex = 0;              // the index of the current reading
-int total = 0;                  // the running total
-int average = 0;                // the average
-
-//
 const int checkDelay = 5000;
 const int buttonDoubleTapDelay = 200;
-const int numOpModes = 4;
+const int numOpModes = 3;
 
 unsigned long lastChecked;
 unsigned long buttonChecked;
@@ -52,17 +43,11 @@ void setup()
   WiFi.softAP("sound_reactive", "123456789");
   Serial.print("Soft-AP IP address = ");
   Serial.println(WiFi.softAPIP());
-  UDP.begin(7171); 
+  UDP.begin(7171);
   resetHeartBeats();
   waitForConnections();
   lastChecked = millis();
   buttonChecked = 0;
-
-  //
-  for (int thisReading = 0; thisReading < numReadings; thisReading++) {
-    readings[thisReading] = 0;
-  }
-  //
 }
 
 
@@ -77,38 +62,9 @@ void loop()
     lastChecked = millis();
   }
 
-  //
-
-// subtract the last reading:
-  total = total - readings[readIndex];
-  // read from the sensor:
-  readings[readIndex] = analogRead(READ_PIN);
-  // add the reading to the total:
-  total = total + readings[readIndex];
-  // advance to the next position in the array:
-  readIndex = readIndex + 1;
-
-  // if we're at the end of the array...
-  if (readIndex >= numReadings) {
-    // ...wrap around to the beginning:
-    readIndex = 0;
-  }
-
-  // calculate the average:
- average = total / numReadings;
-  // send it to the computer as ASCII digits
-  Serial.println(average);
-  delay(1); 
-
-
-
-
-  //
-
   switch (opMode) {
     case 1:
-      analogRaw = average;
-      //analogRaw = analogRead(READ_PIN);
+      analogRaw = analogRead(READ_PIN);
       if (analogRaw <= 3)
         break;
       sendLedData(analogRaw, opMode);
@@ -121,69 +77,62 @@ void loop()
       sendLedData(0, opMode);
       delay(10);
       break;
-    case 4:
-      sendLedData(0, opMode);
-      delay(10);
-      break;
   }
-
-
-
   delay(4);
 }
 
-void sendLedData(uint32_t data, uint8_t op_mode) 
+void sendLedData(uint32_t data, uint8_t op_mode)
 {
- struct led_command send_data;
- send_data.opmode = op_mode; 
- send_data.data = data; 
- for (int i = 0; i < NUMBER_OF_CLIENTS; i++) 
- {
-    IPAddress ip(192,168,4,2 + i);
-    UDP.beginPacket(ip, 7001); 
-    UDP.write((char*)&send_data,sizeof(struct led_command));
+  struct led_command send_data;
+  send_data.opmode = op_mode;
+  send_data.data = data;
+  for (int i = 0; i < NUMBER_OF_CLIENTS; i++)
+  {
+    IPAddress ip(192, 168, 4, 2 + i);
+    UDP.beginPacket(ip, 7001);
+    UDP.write((char*)&send_data, sizeof(struct led_command));
     UDP.endPacket();
- }
+  }
 }
 
 void waitForConnections() {
-  while(true) {
-      readHeartBeat();
-      if (checkHeartBeats()) {
-        return;
-      }
-      delay(checkDelay);
-      resetHeartBeats();
+  while (true) {
+    readHeartBeat();
+    if (checkHeartBeats()) {
+      return;
+    }
+    delay(checkDelay);
+    resetHeartBeats();
   }
 }
 
 void resetHeartBeats() {
   for (int i = 0; i < NUMBER_OF_CLIENTS; i++) {
-   heartbeats[i] = false;
+    heartbeats[i] = false;
   }
 }
 
 void readHeartBeat() {
   struct heartbeat_message hbm;
- while(true) {
-  int packetSize = UDP.parsePacket();
-  if (!packetSize) {
-    break;
+  while (true) {
+    int packetSize = UDP.parsePacket();
+    if (!packetSize) {
+      break;
+    }
+    UDP.read((char *)&hbm, sizeof(struct heartbeat_message));
+    if (hbm.client_id > NUMBER_OF_CLIENTS) {
+      Serial.println("Error: invalid client_id received");
+      continue;
+    }
+    heartbeats[hbm.client_id - 1] = true;
   }
-  UDP.read((char *)&hbm, sizeof(struct heartbeat_message));
-  if (hbm.client_id > NUMBER_OF_CLIENTS) {
-    Serial.println("Error: invalid client_id received");
-    continue;
-  }
-  heartbeats[hbm.client_id - 1] = true;
- }
 }
 
 bool checkHeartBeats() {
   for (int i = 0; i < NUMBER_OF_CLIENTS; i++) {
-   if (!heartbeats[i]) {
-    return false;
-   }
+    if (!heartbeats[i]) {
+      return false;
+    }
   }
   resetHeartBeats();
   return true;
@@ -199,7 +148,7 @@ void buttonCheck()
       doubleTapped = true;
     }
     clickTrigger = true;
-    buttonClicked = true; 
+    buttonClicked = true;
     buttonChecked = millis();
   }
 
