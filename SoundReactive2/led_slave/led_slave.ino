@@ -7,15 +7,15 @@
 #include "reactive_common.h"
 
 #define LED_PIN 4
-#define NUM_LEDS 72
-#define NUM_LEDS_ALL 144
+#define NUM_LEDS 144
+//#define NUM_LEDS_ALL 144
 
 #define MIC_LOW 1  //30 7
-#define MIC_HIGH 650  //600
+#define MIC_HIGH 640  //600
 
-#define SAMPLE_SIZE 60  //20
-#define LONG_TERM_SAMPLES 250
-#define BUFFER_DEVIATION 400
+#define SAMPLE_SIZE 60  //20 60  CHANGE THIS TO MAKE IT FADE OUT SLOWER
+#define LONG_TERM_SAMPLES 250 //250
+#define BUFFER_DEVIATION 400 //400
 #define BUFFER_SIZE 3
 
 #define LAMP_ID 1;
@@ -24,7 +24,7 @@ WiFiUDP UDP;
 const char *ssid = "sound_reactive"; // The SSID (name) of the Wi-Fi network you want to connect to
 const char *password = "123456789";  // The password of the Wi-Fi network
 
-CRGB leds[NUM_LEDS_ALL];
+CRGB leds[NUM_LEDS];
 
 struct averageCounter *samples;
 struct averageCounter *longTermSamples;
@@ -59,7 +59,7 @@ void setup()
   while(sanityBuffer->setSample(250) == true) {}
   while (longTermSamples->setSample(200) == true) {}
 
-  FastLED.addLeds<NEOPIXEL, LED_PIN>(leds, NUM_LEDS_ALL);
+  FastLED.addLeds<NEOPIXEL, LED_PIN>(leds, NUM_LEDS);
   //FastLED.addLeds<NEOPIXEL, LED_PIN>(leds, NUM_LEDS);
   
 
@@ -202,6 +202,68 @@ void chillFade() {
   }
 }
 
+void soundReactiveMirror(int analogRaw) {
+
+ int sanityValue = sanityBuffer->computeAverage();
+ if (!(abs(analogRaw - sanityValue) > BUFFER_DEVIATION)) {
+    sanityBuffer->setSample(analogRaw);
+ }
+  analogRaw = fscale(MIC_LOW, MIC_HIGH, MIC_LOW, MIC_HIGH, analogRaw, 0.6); //0.4
+
+  if (samples->setSample(analogRaw))
+    return;
+    
+  uint16_t longTermAverage = longTermSamples->computeAverage();
+  uint16_t useVal = samples->computeAverage();
+  longTermSamples->setSample(useVal);
+
+  int diff = (useVal - longTermAverage);
+  if (diff > 5)
+  {
+    if (globalHue < 235)
+    {
+      globalHue += hueIncrement;
+    }
+  }
+  else if (diff < -5)
+  {
+    if (globalHue > 2)
+    {
+      globalHue -= hueIncrement;
+    }
+  }
+
+
+  int curshow = fscale(MIC_LOW, MIC_HIGH, 0.0, (float)NUM_LEDS, (float)useVal, 0);
+  //int curshow = map(useVal, MIC_LOW, MIC_HIGH, 0, NUM_LEDS)
+     
+  for (int i = 1; i < (NUM_LEDS/2); i++)
+  {
+     
+   if (i < curshow)
+    {
+
+      //leds[i] = CHSV(globalHue + hueOffset + (i * 2), 255, 255);
+      leds[i] = CHSV(globalHue + hueOffset + (i * 2), 255, 255);
+      leds[((NUM_LEDS - 1) - i)] = leds[i];
+      
+    }
+    else
+    {
+
+      //leds[i] = CRGB(leds[i].r / fadeScale, leds[i].g / fadeScale, leds[i].b / fadeScale);
+      leds[i] = CRGB(leds[i].r / fadeScale, leds[i].g / fadeScale, leds[i].b / fadeScale);
+      leds[((NUM_LEDS - 1) - i)] = leds[i];
+      
+    }
+    
+  }
+  
+  leds[0] = CRGB(0, 0, 0);
+  delay(5);
+  FastLED.show(); 
+}
+
 void soundReactive(int analogRaw) {
 
  int sanityValue = sanityBuffer->computeAverage();
@@ -243,30 +305,30 @@ void soundReactive(int analogRaw) {
    if (i < curshow)
     {
 
-      //leds[i] = CHSV(globalHue + hueOffset + (i * 2), 255, 255);
       leds[i] = CHSV(globalHue + hueOffset + (i * 2), 255, 255);
-      leds[((NUM_LEDS_ALL - 1) - i)] = leds[i];
+      //leds[i] = CHSV(globalHue + hueOffset + (i * 2), 255, 255);
+      //leds[((NUM_LEDS - 1) - i)] = leds[i];
       
     }
     else
     {
 
-      //leds[i] = CRGB(leds[i].r / fadeScale, leds[i].g / fadeScale, leds[i].b / fadeScale);
       leds[i] = CRGB(leds[i].r / fadeScale, leds[i].g / fadeScale, leds[i].b / fadeScale);
-      leds[((NUM_LEDS_ALL - 1) - i)] = leds[i];
+      //leds[i] = CRGB(leds[i].r / fadeScale, leds[i].g / fadeScale, leds[i].b / fadeScale);
+      //leds[((NUM_LEDS - 1) - i)] = leds[i];
       
     }
     
   }
   
-  
+  leds[0] = CRGB(0, 0, 0);
   delay(5);
   FastLED.show(); 
 }
 
 void connectToWifi() {
    WiFi.mode(WIFI_STA);
-  for (int i = 0; i < NUM_LEDS_ALL; i++)
+  for (int i = 0; i < NUM_LEDS; i++)
   {
     leds[i] = CHSV(0, 0, 0);
   }
