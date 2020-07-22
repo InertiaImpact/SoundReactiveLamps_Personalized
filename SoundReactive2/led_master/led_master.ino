@@ -1,16 +1,17 @@
+//git master
 #include <FastLED.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUDP.h>
 #include "reactive_common.h"
 
-#define READ_PIN 0
-#define BUTTON_PIN D1
+#define READ_PIN A0
+#define BUTTON_PIN D4
 
 #define NUMBER_OF_CLIENTS 1
 
 const int checkDelay = 5000;
 const int buttonDoubleTapDelay = 200;
-const int numOpModes = 3;
+const int numOpModes = 5;
 
 unsigned long lastChecked;
 unsigned long buttonChecked;
@@ -70,13 +71,24 @@ void loop()
       sendLedData(analogRaw, opMode);
       break;
     case 2:
-      sendLedData(0, opMode);
-      delay(10);
+      analogRaw = analogRead(READ_PIN);
+      if (analogRaw <= 3)
+        break;
+      sendLedData(analogRaw, opMode);
       break;
     case 3:
       sendLedData(0, opMode);
       delay(10);
       break;
+    case 4:
+      sendLedData(0, opMode);
+      delay(10);
+      break;
+    case 5:
+      sendLedData(0, opMode);
+      delay(10);
+      break;
+      
   }
   delay(4);
 }
