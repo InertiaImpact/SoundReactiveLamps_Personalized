@@ -1,4 +1,4 @@
-
+//git slave
 #define FASTLED_INTERRUPT_RETRY_COUNT 0 
 #define FASTLED_ALLOW_INTERRUPTS 0
 #include <FastLED.h>
@@ -10,7 +10,7 @@
 #define NUM_LEDS 144
 //#define NUM_LEDS_ALL 144
 
-#define MIC_LOW 1  //30 7
+#define MIC_LOW 30  //30 7
 #define MIC_HIGH 640  //600
 
 #define SAMPLE_SIZE 60  //20 60  CHANGE THIS TO MAKE IT FADE OUT SLOWER
@@ -118,17 +118,18 @@ void loop()
       fade = false;
       soundReactive(analogRaw);
       break;
-
     case 2:
+      fade = false;
+      soundReactiveMirror(analogRaw);
+      break;
+    case 3:
       fade = false;
       allWhite();
       break;
-
-    case 3:
+    case 4:
       chillFade();
       break;
-
-    case 4:
+    case 5:
       off();
       break;
   }
@@ -151,7 +152,7 @@ void off() {
     leds[i] = CHSV(0, 0, 0);
   }
   leds[0] = CRGB(0, 100, 0);
-  leds[50] = CRGB(100, 0, 0);
+  leds[1] = CRGB(100, 0, 0);
   
   FastLED.show();
 }
@@ -259,7 +260,7 @@ void soundReactiveMirror(int analogRaw) {
     
   }
   
-  leds[0] = CRGB(0, 0, 0);
+  leds[0] = CRGB(0, 10, 10);
   delay(5);
   FastLED.show(); 
 }
@@ -304,31 +305,23 @@ void soundReactive(int analogRaw) {
      
    if (i < curshow)
     {
-
-      leds[i] = CHSV(globalHue + hueOffset + (i * 2), 255, 255);
-      //leds[i] = CHSV(globalHue + hueOffset + (i * 2), 255, 255);
-      //leds[((NUM_LEDS - 1) - i)] = leds[i];
-      
+      leds[i] = CHSV(globalHue + hueOffset + (i * 2), 255, 255);  
     }
     else
     {
-
       leds[i] = CRGB(leds[i].r / fadeScale, leds[i].g / fadeScale, leds[i].b / fadeScale);
-      //leds[i] = CRGB(leds[i].r / fadeScale, leds[i].g / fadeScale, leds[i].b / fadeScale);
-      //leds[((NUM_LEDS - 1) - i)] = leds[i];
-      
     }
     
   }
   
-  leds[0] = CRGB(0, 0, 0);
+  leds[0] = CRGB(10, 10, 0);
   delay(5);
   FastLED.show(); 
 }
 
 void connectToWifi() {
    WiFi.mode(WIFI_STA);
-  for (int i = 0; i < NUM_LEDS; i++)
+  for (int i = 1; i < NUM_LEDS; i++)
   {
     leds[i] = CHSV(0, 0, 0);
   }
