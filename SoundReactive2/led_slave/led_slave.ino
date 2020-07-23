@@ -10,10 +10,10 @@
 #define NUM_LEDS 144
 //#define NUM_LEDS_ALL 144
 
-#define MIC_LOW 30  //30 7
-#define MIC_HIGH 640  //600
+#define MIC_LOW 7  //30 7
+#define MIC_HIGH 654  //600
 
-#define SAMPLE_SIZE 60  //20 60  CHANGE THIS TO MAKE IT FADE OUT SLOWER
+#define SAMPLE_SIZE 90  //20 60  CHANGE THIS TO MAKE IT FADE OUT SLOWER
 #define LONG_TERM_SAMPLES 250 //250
 #define BUFFER_DEVIATION 400 //400
 #define BUFFER_SIZE 3
@@ -33,7 +33,7 @@ struct averageCounter* sanityBuffer;
 float globalHue;
 float globalBrightness = 55; //55
 int hueOffset = 120;
-float fadeScale = 1.3; //1.3
+float fadeScale = 1.2; //1.3
 float hueIncrement = 2; //0.7
 
 struct led_command {
@@ -119,7 +119,7 @@ void loop()
       soundReactive(analogRaw);
       break;
     case 2:
-      fade = false;
+      fade = true;
       soundReactiveMirror(analogRaw);
       break;
     case 3:
