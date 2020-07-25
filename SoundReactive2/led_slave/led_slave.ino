@@ -209,7 +209,7 @@ void soundReactiveMirror(int analogRaw) {
  if (!(abs(analogRaw - sanityValue) > BUFFER_DEVIATION)) {
     sanityBuffer->setSample(analogRaw);
  }
-  analogRaw = fscale(MIC_LOW, MIC_HIGH, MIC_LOW, MIC_HIGH, analogRaw, 0.6); //0.4
+  analogRaw = fscale(MIC_LOW, MIC_HIGH, MIC_LOW, MIC_HIGH, (analogRaw/1.4), 0.6); //0.4
 
   if (samples->setSample(analogRaw))
     return;
