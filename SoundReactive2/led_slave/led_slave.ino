@@ -18,7 +18,7 @@
 #define BUFFER_DEVIATION 400 //400
 #define BUFFER_SIZE 3
 
-#define LAMP_ID 1;
+#define LAMP_ID 2;
 WiFiUDP UDP;
 
 const char *ssid = "sound_reactive"; // The SSID (name) of the Wi-Fi network you want to connect to

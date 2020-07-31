@@ -7,7 +7,7 @@
 #define READ_PIN A0
 #define BUTTON_PIN D4
 
-#define NUMBER_OF_CLIENTS 1
+#define NUMBER_OF_CLIENTS 2
 
 const int checkDelay = 5000;
 const int buttonDoubleTapDelay = 200;
